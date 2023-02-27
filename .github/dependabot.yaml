@@ -4,4 +4,7 @@ updates:
     directory: "/"
     schedule:
       interval: weekly
-      time: "06:00"
+  - package-ecosystem: gomod
+    directory: /
+    schedule:
+      interval: weekly

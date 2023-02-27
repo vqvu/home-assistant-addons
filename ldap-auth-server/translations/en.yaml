@@ -1,0 +1,35 @@
+configuration:
+  ldap_server_url:
+    name: LDAP Server URL
+    description: |
+      The URL of the server to connect to. Prefix with ldap:// or ldaps://.
+
+      Example: ldaps://ldap.example.com:636
+  bind_dn_template:
+    name: Bind DN Template
+    description: |
+      The template for the DN of the user. The first instance of `%s` will be replaced
+      with the username.
+
+      Example: cn=%s,ou=people,dc=example,dc=com
+  search_base_dn:
+    name: Search Base DN
+    description: |
+      The base DN for user searches. Only necessary when using a search filter.
+
+      Example: ou=people,dc=example,dc=com
+  search_filter_template:
+    name: Search Filter Template
+    description: |
+      The template for the search filter to apply when searching for users. The first
+      `%s` will be replaced with the username. This option can be used to only allow
+      members of specific groups.
+
+      Example: (&(uid=%s)(memberof=cn=home_assistant,ou=groups,dc=example,dc=com))
+  debug_mode:
+    name: Debug Mode
+    description: |
+      Run the server in debug mode.
+
+network:
+  80/tcp: "The server's port. Generally not necessary, but it can be mapped for debugging."

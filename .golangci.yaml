@@ -1,0 +1,13 @@
+linters:
+  enable:
+    - goerr113
+    - revive
+    - varnamelen
+
+linters-settings:
+  varnamelen:
+    ignore-names:
+      - err
+      - ok
+    ignore-decls:
+      - c *gin.Context

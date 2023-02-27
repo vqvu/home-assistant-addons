@@ -1,0 +1,57 @@
+{
+  "name": "Example Home Assistant add-on repository",
+  "image": "ghcr.io/home-assistant/devcontainer:addons",
+  "appPort": ["7123:8123", "7357:4357"],
+  // Work around a bug in the base image.
+  "postCreateCommand": {
+    "fix_supervisor_run_permissions": ["chmod", "u+x", "/usr/bin/supervisor_run"],
+    "install_pre_commit": ["pre-commit", "install"],
+    "install_pre_commit_hooks": ["pre-commit", "install-hooks"]
+  },
+  "postStartCommand": "bash devcontainer_bootstrap",
+  "runArgs": ["-e", "GIT_EDITOR=code --wait", "--privileged"],
+  "remoteUser":"root",
+  "containerEnv": {
+    "WORKSPACE_DIRECTORY": "${containerWorkspaceFolder}"
+  },
+  "mounts": ["type=volume,target=/var/lib/docker"],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "davidanson.vscode-markdownlint",
+        "esbenp.prettier-vscode",
+        "golang.go",
+        "stkb.rewrap",
+        "timonwong.shellcheck",
+        "yzhang.markdown-all-in-one"
+      ],
+      "settings": {
+        "editor.formatOnPaste": false,
+        "editor.formatOnSave": true,
+        "editor.formatOnType": true,
+        "files.trimTrailingWhitespace": true,
+        "rewrap.autoWrap.enabled": true,
+        "rewrap.wholeComment": true,
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "terminal.integrated.profiles.linux": {
+          "zsh": {
+            "path": "/usr/bin/zsh"
+          }
+        },
+        "[markdown]": {
+          "editor.codeActionsOnSave": [
+            "source.fixAll.markdownlint"
+          ],
+          "editor.defaultFormatter": "yzhang.markdown-all-in-one",
+          "editor.rulers": [80]
+        }
+      }
+    }
+  },
+  "features": {
+    "ghcr.io/devcontainers/features/go:1": {
+      "version": "1.20"
+    },
+    "ghcr.io/devcontainers-contrib/features/pre-commit:2": {}
+  }
+}
