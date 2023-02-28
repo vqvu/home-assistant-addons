@@ -4,6 +4,7 @@ version: "0.1.0"
 slug: ldap-auth-server
 description: Add-on to add LDAP authentication to Home Assistant.
 url: "https://github.com/vqvu/home-assistant-addons/ldap-auth-server"
+image: ghcr.io/vqvu/{arch}-addon-ldap-auth-server
 arch:
   - armhf
   - armv7

@@ -1,0 +1,184 @@
+name: Build Addons
+
+env:
+  MONITORED_FILES: "apparmor.txt build.yaml config.yaml Dockerfile rootfs"
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "*_v*"
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  addons_to_build:
+    runs-on: ubuntu-latest
+    name: Find add-ons to build
+    outputs:
+      addons_to_build: ${{ steps.addons_to_build.outputs.addons_to_build }}
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v3.3.0
+
+      - name: Find add-on directories
+        id: addons
+        uses: home-assistant/actions/helpers/find-addons@master
+
+      - name: Get changed files
+        id: changed_files
+        # If pushing a tag only, this step will fail.
+        if: "!startsWith(github.ref, 'refs/tags/')"
+        uses: jitterbit/get-changed-files@v1
+
+      - name: Get tagged add-on
+        id: tagged_addon
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: bash
+        run: |
+          split=($(echo "${GITHUB_REF_NAME}" | tr '_' ' '))
+          if [[ "${#split[@]}" -ne 2 ]]; then
+            echo "Unparsable tag name: ${GITHUB_REF_NAME}"
+            exit 1
+          fi
+
+          name="${split[0]}"
+          version="${split[1]}"
+
+          echo "Parsed add-on name: '${name}'"
+          echo "Parsed add-on version: '${version}'"
+
+          for addon in ${{ steps.addons.outputs.addons }}; do
+            if [[ "${name}" == "${addon}" ]]; then
+              echo "Parsed add-on name valid."
+              echo "name=${name}" >> "${GITHUB_OUTPUT}"
+              echo "version=${version}" >> "${GITHUB_OUTPUT}"
+              exit 0
+            fi
+          done
+
+          echo "Parsed add-on name not valid. Will not build."
+          echo "name=" >> "${GITHUB_OUTPUT}"
+          echo "version=" >> "${GITHUB_OUTPUT}"
+
+      - name: Get tagged add-on information
+        id: tagged_addon_info
+        if: steps.tagged_addon.outputs.name != ''
+        uses: home-assistant/actions/helpers/info@master
+        with:
+          path: "./${{ steps.tagged_addon.outputs.name }}"
+
+      - name: Check tagged add-on has image name
+        if: steps.tagged_addon.outputs.name != ''
+        shell: bash
+        run: |
+          if [[ "${{ steps.tagged_addon_info.outputs.image }}" == "null" ]]; then
+            echo "Tagged add-on does not have an image name. Cannot build."
+            exit 1
+          fi
+
+      - name: Get add-ons to build
+        id: addons_to_build
+        shell: bash
+        run: |
+          addons_to_build=()
+          for addon in ${{ steps.addons.outputs.addons }}; do
+            if [[ "${addon}" == "${{ steps.tagged_addon.outputs.name }}" ]]; then
+              addons_to_build+=("{\"name\":\"${addon}\",\"deploy\":true},")
+              continue
+            fi
+
+            if [[ "${{ steps.changed_files.outputs.all }}" =~ "${addon}" ]]; then
+              for file in ${{ env.MONITORED_FILES }}; do
+                  if [[ "${{ steps.changed_files.outputs.all }}" =~ "${addon}/${file}" ]]; then
+                    if [[ ! "${addons_to_build[@]}" =~ "${addon}" ]]; then
+                      addons_to_build+=("{\"name\":\"${addon}\",\"deploy\":false},")
+                    fi
+                  fi
+              done
+            fi
+          done
+
+          if [[ "${#addons_to_build[@]}" -gt 0 ]]; then
+            output="[$(echo ${addons_to_build[@]} | rev | cut -c 2- | rev)]"
+            echo "Changed add-ons: $output"
+            echo "addons_to_build=${output}" >> "${GITHUB_OUTPUT}"
+          else
+            echo "No add-on to build."
+            echo "Monitored files: (${{ env.MONITORED_FILES }})"
+            echo "addons_to_build=[]" >> "${GITHUB_OUTPUT}"
+          fi
+
+  build:
+    needs: addons_to_build
+    runs-on: ubuntu-latest
+    name: Build ${{ matrix.arch }} ${{ matrix.addon.name }} add-on
+    # https://github.com/orgs/community/discussions/27125#discussioncomment-3254720
+    if: fromJson(needs.addons_to_build.outputs.addons_to_build)[0] != null
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        addon: ${{ fromJson(needs.addons_to_build.outputs.addons_to_build) }}
+        arch: ["aarch64", "amd64", "armhf", "armv7", "i386"]
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v3.3.0
+
+      - name: Get information
+        id: info
+        uses: home-assistant/actions/helpers/info@master
+        with:
+          path: "./${{ matrix.addon.name }}"
+
+      - name: Check if add-on should be built
+        id: check
+        run: |
+          if [[ "${{ steps.info.outputs.architectures }}" =~ "${{ matrix.arch }}" ]]; then
+             echo "build_arch=true" >> "${GITHUB_OUTPUT}"
+           else
+             echo "${{ matrix.arch }} is not a valid arch for ${{ matrix.addon.name }}, skipping build";
+             echo "build_arch=false" >> "${GITHUB_OUTPUT}"
+          fi
+
+      - name: Compute extra args
+        id: compute_extra_args
+        shell: bash
+        run: |
+          extra_args=()
+          if [[ "${{ fromJson(steps.info.outputs.image) }}" == "null" ]]; then
+            extra_args+=(
+              --docker-hub "ghcr.io/${{ github.repository_owner }}"
+              --image "{arch}-addon-${{ matrix.addon.name }}"
+            )
+          fi
+
+          if [[ "${{ matrix.addon.deploy }}" == "false" ]]; then
+            extra_args+=(--test)
+          fi
+
+          echo "Extra args: ${extra_args[@]@Q}"
+          echo "extra_args=${extra_args[@]@Q}" >> "${GITHUB_OUTPUT}"
+
+      - name: Login to GitHub Container Registry
+        if: matrix.addon.deploy
+        uses: docker/login-action@v2.1.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build ${{ matrix.addon.name }} add-on
+        if: steps.check.outputs.build_arch == 'true'
+        uses: home-assistant/builder@2022.11.0
+        with:
+          args: |
+            ${{ steps.compute_extra_args.outputs.extra_args }} \
+            --${{ matrix.arch }} \
+            --target /data/${{ matrix.addon.name }} \
+            --addon
