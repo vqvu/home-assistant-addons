@@ -22,7 +22,7 @@
           args:
             # Provide the hostname of the add-on as the first argument. You can
             # the hostname on the add-on's Info page.
-            - vqvu-ldap-auth-server
+            - 7860403f-ldap-auth-server
           meta: true
         # Optionally add the homeassistant provider as a fallback if you're
         # concerned about a failed LDAP server locking you out of Home
