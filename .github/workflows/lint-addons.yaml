@@ -9,7 +9,7 @@ on:
   pull_request:
 
 env:
-  PYTHON_VERSION: ^3.9.0
+  PYTHON_VERSION: ^3.13.0
 
 permissions:
   contents: read
