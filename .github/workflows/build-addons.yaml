@@ -175,7 +175,7 @@ jobs:
 
       - name: Build ${{ matrix.addon.name }} add-on
         if: steps.check.outputs.build_arch == 'true'
-        uses: home-assistant/builder@2023.09.0
+        uses: home-assistant/builder@2025.09.0
         with:
           args: |
             ${{ steps.compute_extra_args.outputs.extra_args }} \
