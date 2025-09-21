@@ -1,24 +1,21 @@
 {
-  "name": "Example Home Assistant add-on repository",
-  "image": "ghcr.io/home-assistant/devcontainer:addons",
+  "name": "Example devcontainer for add-on repositories",
+  "image": "ghcr.io/home-assistant/devcontainer:2-addons",
   "appPort": ["7123:8123", "7357:4357"],
-  // Work around a bug in the base image.
-  "postCreateCommand": {
-    "fix_supervisor_run_permissions": [
-      "chmod",
-      "u+x",
-      "/usr/bin/supervisor_run"
-    ],
-    "install_pre_commit": ["pre-commit", "install"],
-    "install_pre_commit_hooks": ["pre-commit", "install-hooks"]
+  "postStartCommand": {
+    "Bootstrap Devcontainer": "bash devcontainer_bootstrap",
+    "Install pre-commit": ["pre-commit", "install", "--install-hooks"]
   },
-  "postStartCommand": "bash devcontainer_bootstrap",
   "runArgs": ["-e", "GIT_EDITOR=code --wait", "--privileged"],
-  "remoteUser": "root",
   "containerEnv": {
     "WORKSPACE_DIRECTORY": "${containerWorkspaceFolder}"
   },
-  "mounts": ["type=volume,target=/var/lib/docker"],
+  "workspaceFolder": "/mnt/supervisor/addons/local/${localWorkspaceFolderBasename}",
+  "workspaceMount": "source=${localWorkspaceFolder},target=${containerWorkspaceFolder},type=bind,consistency=cached",
+  "mounts": [
+    "type=volume,target=/var/lib/docker",
+    "type=volume,target=/mnt/supervisor"
+  ],
   "customizations": {
     "vscode": {
       "extensions": [
