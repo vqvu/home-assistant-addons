@@ -10,4 +10,4 @@ https://developers.home-assistant.io/docs/add-ons/presentation#keeping-a-changel
 
 ### Added
 
--  Initial release
+* Initial release

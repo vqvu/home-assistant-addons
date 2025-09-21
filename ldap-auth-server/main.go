@@ -138,9 +138,9 @@ func NewServer(options ServerOptions) *Server {
 
 func (s *Server) writeError(c *gin.Context, err ErrorResponse) {
 	if err.StatusCode >= 400 && err.StatusCode < 500 {
-		log.Infof(err.Error.Error())
+		log.Infof("%s", err.Error.Error())
 	} else {
-		log.Warnf(err.Error.Error())
+		log.Warnf("%s", err.Error.Error())
 	}
 
 	if gin.Mode() == gin.DebugMode {
