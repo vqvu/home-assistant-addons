@@ -14,6 +14,20 @@
         "panel": "new"
       },
       "problemMatcher": []
+    },
+    {
+      "label": "Start LLDAP",
+      "type": "process",
+      "command": "${workspaceFolder}/ldap-auth-server/lldap_server/start_lldap.sh",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "clear": true
+      },
+      "problemMatcher": []
     }
   ]
 }

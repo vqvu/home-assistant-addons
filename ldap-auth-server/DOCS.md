@@ -48,3 +48,16 @@ These limitations are current as of Home Assistant v2023.2.
     server](https://github.com/nitnelave/lldap), so it is possible (though
     probably unlikely) that it doesn't work with other types of LDAP servers for
     one reason or another.
+
+## Advanced configurations
+
+### Adding a custom CA root
+
+If your LDAP server's certificate that is signed by a CA that is not trusted by
+default, you can specify a CA chain in PEM format in a file under the directory
+`/addon_configs/7860403f-ldap-auth-server`. Then specify the
+`Server Root CAs File` config parameter.
+
+Use a local path. If you put your file under
+`/addon_configs/7860403f-ldap-auth-server/ca.pem`, the config should be
+`ca.pem`.

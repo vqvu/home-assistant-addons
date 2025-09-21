@@ -1,0 +1,20 @@
+version: "3"
+
+services:
+  lldap:
+    image: lldap/lldap:stable
+    ports:
+      # For LDAP
+      - "3890:3890"
+      # For LDAPS (LDAP Over SSL)
+      - "6360:6360"
+      # For the web front-end
+      - "17170:17170"
+    volumes:
+      - "./data:/data"
+    logging:
+      # journald is not enabled in the devcontainer.
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

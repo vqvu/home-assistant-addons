@@ -2,6 +2,10 @@
   "name": "Example devcontainer for add-on repositories",
   "image": "ghcr.io/home-assistant/devcontainer:2-addons",
   "appPort": ["7123:8123", "7357:4357"],
+  "forwardPorts": [
+    // LLDAP
+    17170
+  ],
   "postStartCommand": {
     "Bootstrap Devcontainer": "bash devcontainer_bootstrap",
     "Install pre-commit": ["pre-commit", "install", "--install-hooks"]
@@ -23,6 +27,7 @@
         "esbenp.prettier-vscode",
         "golang.go",
         "stkb.rewrap",
+        "tamasfe.even-better-toml",
         "timonwong.shellcheck",
         "yzhang.markdown-all-in-one"
       ],
@@ -48,6 +53,12 @@
     }
   },
   "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "version": "latest",
+      "moby": false,
+      "installDockerBuildx": true,
+      "installDockerCompose": true
+    },
     "ghcr.io/devcontainers/features/go:1": {
       "version": "1.25.1"
     },
