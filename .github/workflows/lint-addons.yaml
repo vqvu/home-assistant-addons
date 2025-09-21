@@ -57,7 +57,7 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name:
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v6
         with:
           go-version-file: go.work
 
@@ -98,7 +98,7 @@ jobs:
 
       - name: Set up Go
         if: steps.check_is_go.outputs.is_go == 'true'
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v6
         with:
           go-version-file: go.work
 
