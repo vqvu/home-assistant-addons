@@ -1,13 +1,31 @@
+version: "2"
 linters:
   enable:
-    - goerr113
+    - err113
     - revive
     - varnamelen
-
-linters-settings:
-  varnamelen:
-    ignore-names:
-      - err
-      - ok
-    ignore-decls:
-      - c *gin.Context
+  settings:
+    varnamelen:
+      ignore-names:
+        - err
+        - ok
+      ignore-decls:
+        - c *gin.Context
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

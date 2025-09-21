@@ -1,23 +1,24 @@
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v2.3.0
+    rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c # v6.0.0
     hooks:
       - id: check-yaml
       - id: end-of-file-fixer
       - id: trailing-whitespace
   - repo: https://github.com/DavidAnson/markdownlint-cli2
-    rev: v0.6.0
+    rev: d7a4f7cf4914d3bffb9b83bdbc45fd2a00c91ff9 # v0.18.1
     hooks:
       - id: markdownlint-cli2
   - repo: https://github.com/golangci/golangci-lint
-    rev: v1.51.2
+    rev: ff63786c30d6c2926f99d677ab2ecf089e9390ad # v2.5.0
     hooks:
+      - id: golangci-lint-config-verify
+      - id: golangci-lint-fmt
       - id: golangci-lint
         args:
           - "--"
           - "./ldap-auth-server/..."
-  - repo: https://github.com/dnephin/pre-commit-golang
-    rev: v0.5.1
+  - repo: https://github.com/TekWizely/pre-commit-golang
+    rev: bf2137dcd61fa219107613e4a4103cf24540cd93 # v1.0.0-rc.2
     hooks:
-      - id: go-fmt
       - id: go-mod-tidy

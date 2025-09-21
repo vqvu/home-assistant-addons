@@ -4,13 +4,17 @@
   "appPort": ["7123:8123", "7357:4357"],
   // Work around a bug in the base image.
   "postCreateCommand": {
-    "fix_supervisor_run_permissions": ["chmod", "u+x", "/usr/bin/supervisor_run"],
+    "fix_supervisor_run_permissions": [
+      "chmod",
+      "u+x",
+      "/usr/bin/supervisor_run"
+    ],
     "install_pre_commit": ["pre-commit", "install"],
     "install_pre_commit_hooks": ["pre-commit", "install-hooks"]
   },
   "postStartCommand": "bash devcontainer_bootstrap",
   "runArgs": ["-e", "GIT_EDITOR=code --wait", "--privileged"],
-  "remoteUser":"root",
+  "remoteUser": "root",
   "containerEnv": {
     "WORKSPACE_DIRECTORY": "${containerWorkspaceFolder}"
   },
@@ -39,9 +43,7 @@
           }
         },
         "[markdown]": {
-          "editor.codeActionsOnSave": [
-            "source.fixAll.markdownlint"
-          ],
+          "editor.codeActionsOnSave": ["source.fixAll.markdownlint"],
           "editor.defaultFormatter": "yzhang.markdown-all-in-one",
           "editor.rulers": [80]
         }
@@ -50,8 +52,10 @@
   },
   "features": {
     "ghcr.io/devcontainers/features/go:1": {
-      "version": "1.20"
+      "version": "1.25.1"
     },
-    "ghcr.io/devcontainers-contrib/features/pre-commit:2": {}
+    "ghcr.io/devcontainers-extra/features/pre-commit:2": {
+      "version": "4.3.0"
+    }
   }
 }
