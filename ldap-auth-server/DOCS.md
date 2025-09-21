@@ -38,24 +38,12 @@ These limitations are current as of Home Assistant v2023.2.
     ones created via the `homeassistant` provider, even if their usernames are
     the same. This means you will lose all user configurations when adopting a
     new auth provider.
-2.  Users created by `command_line` provider are all Administrators, and it is
-    not possible to change this in the UI. You will need to manually modify the
-    `group_ids` field of the user in the `/config/.storage/auth` file to be
-    `system-users`. Example
+2.  Users created by `command_line` provider are all Administrators by default.
+    If you don't want this, you can update the user configuration manually in
+    the UI. Don't forget to restart your Home Assistant afterwards.
 
-    ```json
-    {
-      "id": "5de09f4cdcdb4d4fa2a39291147803df",
-      "group_ids": [
-        "system-users"
-      ],
-      ...
-      "name": "Non-admin User",
-      ...
-    },
-    ```
-
-    Don't forget to restart your Home Assistant afterwards.
+    While it is now possible to set the HASS group during user authentication,
+    this repo does not currently implement it.
 3.  This add-on is only tested with an [LLDAP
     server](https://github.com/nitnelave/lldap), so it is possible (though
     probably unlikely) that it doesn't work with other types of LDAP servers for
