@@ -11,7 +11,7 @@ configuration:
       The template for the DN of the user. The first instance of `%s` will be replaced
       with the username.
 
-      Example: cn=%s,ou=people,dc=example,dc=com
+      Example: uid=%s,ou=people,dc=example,dc=com
   search_base_dn:
     name: Search Base DN
     description: |
@@ -26,6 +26,19 @@ configuration:
       members of specific groups.
 
       Example: (&(uid=%s)(memberof=cn=home_assistant,ou=groups,dc=example,dc=com))
+  server_root_cas_file:
+    name: Server Root CAs File
+    description: |
+      Path to a file containing PEM-encoded root CA certificates to trust when validating the LDAP
+      server's TLS certificate. Use this if your LDAP server uses a private CA or self-signed certificate.
+      This must be a local path under the /addon_configs/{REPO}_<your addon's slug> directory. The addon
+      cannot read files from other locations in your Home Assistant host.
+  disable_server_cert_validation:
+    name: Disable Server Certificate Validation
+    description: |
+      If enabled, TLS server certificates will not be validated when connecting over ldaps://.
+      Only use this for testing or in trusted environments, as it makes the connection susceptible
+      to man-in-the-middle attacks.
   debug_mode:
     name: Debug Mode
     description: |

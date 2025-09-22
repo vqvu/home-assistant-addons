@@ -14,7 +14,8 @@ arch:
 startup: services
 init: false
 map:
-  - share:rw
+  - type: addon_config
+    read_only: true
 ports:
   80/tcp: null
 options:
@@ -23,6 +24,10 @@ options:
 schema:
   ldap_server_url: str
   bind_dn_template: str
+
+  # Optional parameters
   search_base_dn: str?
   search_filter_template: str?
+  server_root_cas_file: str?
+  disable_server_cert_validation: bool?
   debug_mode: bool?

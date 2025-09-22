@@ -9,12 +9,16 @@ import (
 	"os"
 	"strings"
 
+	"crypto/tls"
+	"crypto/x509"
+
 	"github.com/gin-gonic/gin"
 	ldap "github.com/go-ldap/ldap/v3"
 	log "github.com/sirupsen/logrus"
 )
 
 var configFile = flag.String("config", "/data/options.json", "The path to the server's config file")
+var errCouldNotParseCAFile = errors.New("failed to parse certificates")
 
 // LDAPOptions holds the opotions for an `LDAPAuthenticator`.
 type LDAPOptions struct {
@@ -22,6 +26,7 @@ type LDAPOptions struct {
 	BindDNTemplate       string
 	SearchBaseDN         string
 	SearchFilterTemplate string
+	TLSConfig            *tls.Config
 }
 
 // LDAPUser holds metadata about a user from an LDAP server.
@@ -43,7 +48,11 @@ func (a *LDAPAuthenticator) Authenticate(username, password string) (bool, LDAPU
 		return false, LDAPUser{}, nil
 	}
 
-	conn, err := ldap.DialURL(a.Options.ServerURL)
+	var dialOpts []ldap.DialOpt
+	if a.Options.TLSConfig != nil {
+		dialOpts = append(dialOpts, ldap.DialWithTLSConfig(a.Options.TLSConfig))
+	}
+	conn, err := ldap.DialURL(a.Options.ServerURL, dialOpts...)
 	if err != nil {
 		return false, LDAPUser{}, fmt.Errorf("could not dial server at %q: %w", a.Options.ServerURL, err)
 	}
@@ -56,17 +65,41 @@ func (a *LDAPAuthenticator) Authenticate(username, password string) (bool, LDAPU
 		return false, LDAPUser{}, nil
 	}
 
-	searchFilter := fmt.Sprintf(a.Options.SearchFilterTemplate, username)
-	log.Debugf("Searching with filter: %q", searchFilter)
+	var searchBaseDN string
+	if a.Options.SearchBaseDN == "" {
+		res, err := conn.WhoAmI( /* controls= */ nil)
+		if err != nil {
+			return false, LDAPUser{}, fmt.Errorf("WhoAmiI failed: %w", err)
+		}
+		if res.AuthzID != "" {
+			searchBaseDN = strings.TrimPrefix(res.AuthzID, "dn:")
+		} else {
+			searchBaseDN = bindDN
+		}
+	} else {
+		searchBaseDN = a.Options.SearchBaseDN
+	}
+
+	var searchFilter string
+	if a.Options.SearchFilterTemplate == "" {
+		// Meant to be a filter that always matches.
+		searchFilter = "(objectClass=*)"
+	} else if strings.Contains(a.Options.SearchFilterTemplate, "%s") {
+		searchFilter = fmt.Sprintf(a.Options.SearchFilterTemplate, username)
+	} else {
+		searchFilter = a.Options.SearchFilterTemplate
+	}
+
+	log.Debugf("Searching with baseDN %s and filter: %q", searchBaseDN, searchFilter)
 	res, err := conn.Search(ldap.NewSearchRequest(
-		a.Options.SearchBaseDN,
+		searchBaseDN,
 		ldap.ScopeWholeSubtree,
 		ldap.NeverDerefAliases,
 		/* SizeLimit= */ 2,
 		/* TimeLimit= */ 1,
 		/* TypesOnly= */ false,
 		searchFilter,
-		/* Attribuutes= */ nil,
+		/* Attributes= */ nil,
 		/* Controls= */ nil,
 	))
 	if err != nil {
@@ -193,11 +226,13 @@ func (s *Server) Serve() error {
 
 // AddOnConfig is the struct representing the add-on's configuration.
 type AddOnConfig struct {
-	LDAPServerURL        string `json:"ldap_server_url"`
-	BindDNTemplate       string `json:"bind_dn_template"`
-	SearchBaseDN         string `json:"search_base_dn"`
-	SearchFilterTemplate string `json:"search_filter_template"`
-	DebugMode            bool   `json:"debug_mode"`
+	LDAPServerURL               string `json:"ldap_server_url"`
+	BindDNTemplate              string `json:"bind_dn_template"`
+	SearchBaseDN                string `json:"search_base_dn"`
+	SearchFilterTemplate        string `json:"search_filter_template"`
+	ServerRootCAsFile           string `json:"server_root_cas_file"`
+	DisableServerCertValidation bool   `json:"disable_server_cert_validation"`
+	DebugMode                   bool   `json:"debug_mode"`
 }
 
 // parseAddOnConfig parses the `AddOnConfig` from a JSON file.
@@ -212,23 +247,51 @@ func parseAddOnConfig(configFile string) (AddOnConfig, error) {
 	if err != nil {
 		return AddOnConfig{}, fmt.Errorf("could not parse config file: %q: %w", configFile, err)
 	}
+
+	if (config.SearchBaseDN == "") != (config.SearchFilterTemplate == "") {
+		return AddOnConfig{}, fmt.Errorf("search_base_dn (%q) and search_filter_template (%q) must both be set or both be unset: %w", config.SearchBaseDN, config.SearchFilterTemplate, ErrInvalidServerOptions)
+	}
+
 	return config, nil
 }
 
 var ErrInvalidServerOptions = errors.New("invalid server options")
 
 func toServerOptions(config AddOnConfig) (ServerOptions, error) {
-	if (config.SearchBaseDN == "") != (config.SearchFilterTemplate == "") {
-		return ServerOptions{}, fmt.Errorf("search_base_dn (%q) and search_filter (%q) must both be set or both be unset: %w", config.SearchBaseDN, config.SearchFilterTemplate, ErrInvalidServerOptions)
+	log.Infof("Loaded config: %+v", config)
+
+	var tlsConfig *tls.Config
+	if strings.HasPrefix(strings.ToLower(config.LDAPServerURL), "ldaps://") {
+		if config.DisableServerCertValidation {
+			log.Warn("Disabling server certificate validation")
+		}
+
+		tlsConfig = &tls.Config{
+			InsecureSkipVerify: config.DisableServerCertValidation,
+		}
+		// Load custom root CAs if provided
+		if config.ServerRootCAsFile != "" {
+			rootCAFile := fmt.Sprintf("/config/%s", config.ServerRootCAsFile)
+			log.Infof("Loading custom root CAs from file %q", rootCAFile)
+			caData, err := os.ReadFile(rootCAFile)
+			if err != nil {
+				return ServerOptions{}, fmt.Errorf("could not read server_root_cas_file %q: %w", config.ServerRootCAsFile, err)
+			}
+			certPool := x509.NewCertPool()
+			if !certPool.AppendCertsFromPEM(caData) {
+				return ServerOptions{}, fmt.Errorf("from %q: %w", config.ServerRootCAsFile, errCouldNotParseCAFile)
+			}
+			tlsConfig.RootCAs = certPool
+		}
 	}
 
-	log.Infof("Loaded config: %+v", config)
 	return ServerOptions{
 		LDAPOptions: LDAPOptions{
 			ServerURL:            config.LDAPServerURL,
 			BindDNTemplate:       config.BindDNTemplate,
 			SearchBaseDN:         config.SearchBaseDN,
 			SearchFilterTemplate: config.SearchFilterTemplate,
+			TLSConfig:            tlsConfig,
 		},
 	}, nil
 }
