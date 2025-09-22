@@ -31,7 +31,7 @@ configuration:
     description: |
       Path to a file containing PEM-encoded root CA certificates to trust when validating the LDAP
       server's TLS certificate. Use this if your LDAP server uses a private CA or self-signed certificate.
-      This must be a local path under the /addon_configs/{REPO}_<your addon's slug> directory. The addon
+      This must be a local path under the /addon_configs/7860403f-ldap-auth-server directory. The addon
       cannot read files from other locations in your Home Assistant host.
   disable_server_cert_validation:
     name: Disable Server Certificate Validation
