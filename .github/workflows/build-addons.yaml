@@ -71,12 +71,17 @@ jobs:
         with:
           path: "./${{ steps.tagged_addon.outputs.name }}"
 
-      - name: Check tagged add-on has image name
+      - name: Check tagged add-on has image name and valid version
         if: steps.tagged_addon.outputs.name != ''
         shell: bash
         run: |
           if [[ "${{ steps.tagged_addon_info.outputs.image }}" == "null" ]]; then
             echo "Tagged add-on does not have an image name. Cannot build."
+            exit 1
+          fi
+
+          if [[ "v${{ steps.tagged_addon_info.outputs.version }}" != ${{ steps.tagged_addon.outputs.version }} ]]; then
+            echo "Tagged add-on version does not match tag version."
             exit 1
           fi
 
