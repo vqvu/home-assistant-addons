@@ -6,6 +6,17 @@ https://developers.home-assistant.io/docs/add-ons/presentation#keeping-a-changel
 
 ## [Unreleased]
 
+## 0.3.0
+
+### Added
+
+* Improve documentations.
+* Update base images to 3.22.
+
+### Fix
+
+* Add `/config/**` to the apparmor profile.
+
 ## 0.2.0
 
 ### Added
