@@ -10,5 +10,3 @@ labels:
   org.opencontainers.image.description: "Add-on to add LDAP authentication to Home Assistant."
   org.opencontainers.image.source: "https://github.com/vqvu/home-assistant-addons/ldap-auth-server"
   org.opencontainers.image.licenses: "Apache License 2.0"
-args:
-  TEMPIO_VERSION: "2021.09.0"
