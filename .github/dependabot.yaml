@@ -9,7 +9,16 @@ updates:
         update-types:
           - version-update:semver-patch
   - package-ecosystem: gomod
-    directory: /
+    directories:
+      - "/ldap-auth-server"
+    schedule:
+      interval: weekly
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - version-update:semver-patch
+  - package-ecosystem: devcontainers
+    directory: "/"
     schedule:
       interval: weekly
     ignore:
