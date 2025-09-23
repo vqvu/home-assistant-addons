@@ -1,47 +1,56 @@
 configuration:
   ldap_server_url:
     name: LDAP Server URL
-    description: |
+    description: |-
       The URL of the server to connect to. Prefix with ldap:// or ldaps://.
 
       Example: ldaps://ldap.example.com:636
+
   bind_dn_template:
     name: Bind DN Template
-    description: |
+    description: |-
       The template for the DN of the user. The first instance of `%s` will be replaced
       with the username.
 
       Example: uid=%s,ou=people,dc=example,dc=com
+
   search_base_dn:
     name: Search Base DN
-    description: |
+    description: |-
       The base DN for user searches. Only necessary when using a search filter.
+      If unset, the bind DN will be used.
 
       Example: ou=people,dc=example,dc=com
+
   search_filter_template:
     name: Search Filter Template
-    description: |
+    description: |-
       The template for the search filter to apply when searching for users. The first
-      `%s` will be replaced with the username. This option can be used to only allow
-      members of specific groups.
+      `%s` will be replaced with the username. This filter must return zero or one result.
+      If zero, the user is assumed to be unauthorized. If one, the user is authorized.
+      This option can be used to only authorize members of specific groups. If unset,
+      the filter (objectClass=*) will be used.
 
       Example: (&(uid=%s)(memberof=cn=home_assistant,ou=groups,dc=example,dc=com))
+
   server_root_cas_file:
     name: Server Root CAs File
-    description: |
+    description: |-
       Path to a file containing PEM-encoded root CA certificates to trust when validating the LDAP
       server's TLS certificate. Use this if your LDAP server uses a private CA or self-signed certificate.
       This must be a local path under the /addon_configs/7860403f-ldap-auth-server directory. The addon
       cannot read files from other locations in your Home Assistant host.
+
   disable_server_cert_validation:
     name: Disable Server Certificate Validation
-    description: |
+    description: |-
       If enabled, TLS server certificates will not be validated when connecting over ldaps://.
       Only use this for testing or in trusted environments, as it makes the connection susceptible
       to man-in-the-middle attacks.
+
   debug_mode:
     name: Debug Mode
-    description: |
+    description: |-
       Run the server in debug mode.
 
 network:
