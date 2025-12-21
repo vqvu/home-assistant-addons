@@ -26,6 +26,9 @@
             # Provide the hostname of the add-on as the first argument. You can
             # the hostname on the add-on's Info page.
             - 7860403f-ldap-auth-server
+            # (Optional) Provide a webhook to post login events. If unset, no
+            # events are posted.
+            # - https://localhost:8080/api/webhook/some_webhook.
           meta: true
         # Optionally add the homeassistant provider as a fallback if you're
         # concerned about a failed LDAP server locking you out of Home

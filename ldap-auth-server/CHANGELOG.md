@@ -6,6 +6,11 @@ https://developers.home-assistant.io/docs/add-ons/presentation#keeping-a-changel
 
 ## [Unreleased]
 
+### Added
+
+* Updated `ldap_auth_command.sh` to add support for optionally sending a
+  webhook.
+
 ## 0.3.0
 
 ### Added
