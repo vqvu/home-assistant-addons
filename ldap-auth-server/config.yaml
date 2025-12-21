@@ -6,11 +6,8 @@ description: Add-on to add LDAP authentication to Home Assistant.
 url: "https://github.com/vqvu/home-assistant-addons/ldap-auth-server"
 image: ghcr.io/vqvu/{arch}-addon-ldap-auth-server
 arch:
-  - armhf
-  - armv7
   - aarch64
   - amd64
-  - i386
 startup: services
 init: false
 map:

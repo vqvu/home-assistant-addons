@@ -18,6 +18,12 @@ https://developers.home-assistant.io/docs/add-ons/presentation#keeping-a-changel
 
 * Add `/config/**` to the apparmor profile.
 
+### Breaking
+
+* No longer support the `i386`, `arm7`, and `armhf` architectures, as they are
+  no longer supported by Home Assistant. See
+  <https://github.com/home-assistant/builder/releases/tag/2025.11.0>.
+
 ## 0.2.0
 
 ### Added
