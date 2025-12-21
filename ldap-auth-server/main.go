@@ -296,12 +296,10 @@ func toServerOptions(config AddOnConfig) (ServerOptions, error) {
 	}, nil
 }
 
-func init() {
+func main() {
 	log.SetReportCaller(true)
 	log.SetLevel(log.InfoLevel)
-}
 
-func main() {
 	flag.Parse()
 	config, err := parseAddOnConfig(*configFile)
 	if err != nil {
