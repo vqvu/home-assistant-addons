@@ -11,7 +11,8 @@
     section.
 4. Copy the
     [ldap_auth_command.sh](https://github.com/vqvu/home-assistant-addons/ldap-auth-server/ldap_auth_command.sh)
-    file to your Home Assistant config directory.
+    file to your Home Assistant config directory. You may wish to edit the
+    "Hard-coded metadata" section of the script.
 5. Add a custom [Command Line authentication
     provider](https://www.home-assistant.io/docs/authentication/providers/#command-line)
     to your configuration to call that script.

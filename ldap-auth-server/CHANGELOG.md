@@ -12,6 +12,7 @@ https://developers.home-assistant.io/docs/add-ons/presentation#keeping-a-changel
 
 * Improve documentations.
 * Update base images to 3.22.
+* Update `ldap_auth_command.sh` to hard-code safer defaults for new users.
 
 ### Fix
 
